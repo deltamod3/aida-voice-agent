@@ -2,6 +2,7 @@ import * as React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import Transcript from "@/components/Transcript";
+import { useTranscriptWebSocket } from "@/hooks/useTranscriptWebSocket";
 
 // @ts-expect-error - External library without type definitions
 import { WavRecorder, WavStreamPlayer } from "./lib/wavtools/index.js";
@@ -14,6 +15,11 @@ const wavStreamPlayerRef = { current: null as WavStreamPlayer | null };
 const RELAY_SERVER_URL = import.meta.env.VITE_WSS_SERVER_URL;
 
 const App: React.FC = () => {
+  // Real-time transcript
+  const { utterances, addAidaUtterance } = useTranscriptWebSocket(
+    "wss://meeting-data.bot.recall.ai/api/v1/transcript"
+  );
+
   const [connectionStatus, setConnectionStatus] = useState<
     "disconnected" | "connecting" | "connected"
   >("disconnected");
@@ -141,7 +147,10 @@ const App: React.FC = () => {
         item.formatted.file = wavFile;
 
         if (item.formatted.transcript) {
-          console.log(item.formatted.transcript);
+          addAidaUtterance({
+            speaker: "Aida Voice Agent",
+            text: item.formatted.transcript,
+          });
         }
       }
     });
@@ -153,7 +162,7 @@ const App: React.FC = () => {
 
   return (
     <div className="app-container">
-      <Transcript />
+      <Transcript utterances={utterances} />
     </div>
   );
 };

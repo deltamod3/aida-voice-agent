@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { Utterance } from "@/types";
 
 interface Word {
   text: string;
@@ -19,12 +20,6 @@ interface Transcript {
 interface TranscriptMessage {
   bot_id: string;
   transcript: Transcript;
-}
-
-interface Utterance {
-  speaker: string | null;
-  text: string;
-  color?: string;
 }
 
 export const useTranscriptWebSocket = (wsUrl: string) => {
@@ -97,15 +92,15 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
   };
 
   useEffect(() => {
-    // connectWebSocket();
-    // return () => {
-    //   if (wsRef.current) {
-    //     wsRef.current.close();
-    //   }
-    //   if (retryIntervalRef.current) {
-    //     clearInterval(retryIntervalRef.current);
-    //   }
-    // };
+    connectWebSocket();
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      if (retryIntervalRef.current) {
+        clearInterval(retryIntervalRef.current);
+      }
+    };
   }, []);
 
   // This could get super long for really long conversations.
@@ -117,7 +112,13 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
     return finalizedUtterances;
   }, [finalizedUtterances, currentUtterance]);
 
+  // Function to add Aida's utterance to the utterances
+  const addAidaUtterance = (utterance: Utterance) => {
+    setFinalizedUtterances((prev) => [...prev, utterance]);
+  };
+
   return {
     utterances,
+    addAidaUtterance,
   };
 };

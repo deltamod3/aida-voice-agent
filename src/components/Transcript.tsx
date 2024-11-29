@@ -1,13 +1,14 @@
 import * as React from "react";
 import { useEffect, useRef } from "react";
-import { useTranscriptWebSocket } from "@/hooks/useTranscriptWebSocket";
+import type { Utterance } from "@/types";
+
 import "./Transcript.css";
 
-const Transcript: React.FC = () => {
-  const { utterances } = useTranscriptWebSocket(
-    "wss://meeting-data.bot.recall.ai/api/v1/transcript"
-  );
+interface TranscriptProps {
+  utterances: Utterance[];
+}
 
+const Transcript: React.FC<TranscriptProps> = ({ utterances }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
