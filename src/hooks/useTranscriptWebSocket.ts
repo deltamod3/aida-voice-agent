@@ -97,15 +97,15 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
   };
 
   useEffect(() => {
-    connectWebSocket();
-    return () => {
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-      if (retryIntervalRef.current) {
-        clearInterval(retryIntervalRef.current);
-      }
-    };
+    // connectWebSocket();
+    // return () => {
+    //   if (wsRef.current) {
+    //     wsRef.current.close();
+    //   }
+    //   if (retryIntervalRef.current) {
+    //     clearInterval(retryIntervalRef.current);
+    //   }
+    // };
   }, []);
 
   // This could get super long for really long conversations.
