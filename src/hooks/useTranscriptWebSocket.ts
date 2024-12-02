@@ -22,6 +22,13 @@ interface TranscriptMessage {
   transcript: Transcript;
 }
 
+const WAKE_AIDA_COMMAND_LIST = ["hey aida", "aida listen", "start listening"];
+const MUTE_AIDA_COMMAND_LIST = ["aida mute", "stop listening"];
+
+const normalizeText = (text: string): string => {
+  return text.toLowerCase().replace(/[^\w\s]/g, "");
+};
+
 export const useTranscriptWebSocket = (wsUrl: string) => {
   const RECONNECT_RETRY_INTERVAL_MS = 3000;
 
@@ -34,6 +41,8 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
   const [currentUtterance, setCurrentUtterance] = useState<Utterance | null>(
     null
   );
+
+  const [command, setCommand] = useState<"connect" | "disconnect">();
 
   const connectWebSocket = () => {
     if (wsRef.current) return;
@@ -67,6 +76,24 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
           },
         ]);
         setCurrentUtterance(null);
+
+        // Check command
+        const normalizedText = normalizeText(text);
+        if (
+          WAKE_AIDA_COMMAND_LIST.some((command) =>
+            normalizedText.includes(command)
+          )
+        ) {
+          // Check for wake command
+          setCommand("connect");
+        } else if (
+          MUTE_AIDA_COMMAND_LIST.some((command) =>
+            normalizedText.includes(command)
+          )
+        ) {
+          // Check for mute command
+          setCommand("disconnect");
+        }
       }
     };
 
@@ -118,6 +145,7 @@ export const useTranscriptWebSocket = (wsUrl: string) => {
   };
 
   return {
+    command,
     utterances,
     addAidaUtterance,
   };

@@ -1,7 +1,7 @@
 # Aida Voice Agent
 
 
-This is a sample app demonstrating how to leverage [Recall.ai](https://www.recall.ai/) to create a real-time notetaker/translator for video conferences.
+This is a sample app demonstrating how to leverage the Aida Voice Agent to create a real-time meeting assistant for video conferences. The app enables features such as automated note-taking, transcription, and live translation to enhance productivity and collaboration during virtual meetings.
 
 While this example specifically uses the real-time transcription WebSocket API, you can also use the [Output Media](https://docs.recall.ai/docs/stream-media) feature to receive and output low-latency audio.
 
@@ -9,7 +9,6 @@ While this example specifically uses the real-time transcription WebSocket API, 
 
 -   Node.js and npm installed.
 -   [Recall.ai](https://recall.ai) API Key
--   [Google Translate API](https://cloud.google.com/translate/docs/reference/rest/?apix=true) Key
 -   [ngrok](https://docs.recall.ai/docs/local-webhook-development)
 
 ## Setup Guide
@@ -17,8 +16,8 @@ While this example specifically uses the real-time transcription WebSocket API, 
 1. Clone the Repository
 
 ```bash
-git clone https://github.com/recallai/real-time-translator-demo.git
-cd real-time-translator-demo
+git clone https://github.com/deltamod3/aida-voice-agent
+cd aida-voice-agent
 ```
 
 2. Install Dependencies
@@ -38,19 +37,18 @@ cp .env.example .env
 Then fill out the following environment variables in your new `.env`:
 
 ```env
-VITE_GOOGLE_TRANSLATE_API_KEY=your_google_translate_api_key
+VITE_WSS_SERVER_URL=your_backend_websocket_url
 ```
 
-(Optional) You can set a default language by setting the `VITE_DEFAULT_TARGET_LANGUAGE_CODE` to a [LanguageCode](./src/utils/language.ts#L2) value.
+Note: Start by running the backend to ensure the Aida Voice Agent operates seamlessly.
 
-If this is not set, you can tell the bot what language you want to translate to in the call.
 
 4. Run the App
 
 Start your ngrok tunnel:
 
 ```bash
-ngrok http --domain {YOUR_NGROK_STATIC_DOMAIN} 3000
+ngrok http 4000
 ```
 
 Start the react app in another terminal:
@@ -82,7 +80,7 @@ curl --request POST \
      --data-raw '
 {
   "meeting_url": {MEETING_URL},
-  "bot_name": "Translator",
+  "bot_name": "Aida Voice Agent",
   "output_media": {
     "screenshare": {
       "kind": "webpage",
@@ -104,6 +102,6 @@ Where:
 -   {MEETING_URL} is the Meeting URL created in step 5.
 -   {NGROK_TUNNEL_URL} is your publicly exposed ngrok tunnel URL
 
-The bot will then join your meeting and render the app in the call, transcribing and translating speech in real-time, with appropriate speaker labels.
+The bot will then join your meeting and render the app in the call, transcribing speech in real-time and communicating with AI agent based on command.
 
 Happy building!

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import Transcript from "@/components/Transcript";
 import { useTranscriptWebSocket } from "@/hooks/useTranscriptWebSocket";
@@ -15,15 +15,11 @@ const wavStreamPlayerRef = { current: null as WavStreamPlayer | null };
 const RELAY_SERVER_URL = import.meta.env.VITE_WSS_SERVER_URL;
 
 const App: React.FC = () => {
-  // Real-time transcript
-  const { utterances, addAidaUtterance } = useTranscriptWebSocket(
-    "wss://meeting-data.bot.recall.ai/api/v1/transcript"
-  );
-
-  const [connectionStatus, setConnectionStatus] = useState<
-    "disconnected" | "connecting" | "connected"
-  >("disconnected");
-  const isConnectedRef = useRef(false);
+  // Aida status
+  const [aidaConnectionStatus, setAidaConnectionStatus] = useState<
+    "muted" | "connect" | "connecting" | "disconnect" | "unmuted"
+  >("muted");
+  const isAidaConnectedRef = useRef(false);
 
   // OpenAI real-time client with WSS
   if (!clientRef.current) {
@@ -43,12 +39,11 @@ const App: React.FC = () => {
   }
 
   const connectConversation = useCallback(async () => {
-    if (isConnectedRef.current) {
+    if (isAidaConnectedRef.current) {
       return;
     }
-    isConnectedRef.current = true;
 
-    setConnectionStatus("connecting");
+    setAidaConnectionStatus("connecting");
 
     const client = clientRef.current;
     const wavRecorder = wavRecorderRef.current;
@@ -67,15 +62,16 @@ const App: React.FC = () => {
       // Connect to realtime API
       await client.connect();
 
-      setConnectionStatus("connected");
+      isAidaConnectedRef.current = true;
+      setAidaConnectionStatus("unmuted");
 
       client.on("error", (event: any) => {
         console.error(event);
-        setConnectionStatus("disconnected");
+        setAidaConnectionStatus("muted");
       });
 
       client.on("disconnected", () => {
-        setConnectionStatus("disconnected");
+        setAidaConnectionStatus("muted");
       });
 
       client.sendUserMessageContent([
@@ -103,7 +99,7 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error("Connection error:", error);
-      setConnectionStatus("disconnected");
+      setAidaConnectionStatus("muted");
     }
   }, [RELAY_SERVER_URL]);
 
@@ -111,7 +107,7 @@ const App: React.FC = () => {
    * Core RealtimeClient and audio capture setup
    * Set all of our instructions, tools, events and more
    */
-  useEffect(() => {
+  const connectAidaAgent = async () => {
     connectConversation();
     const wavStreamPlayer = wavStreamPlayerRef.current;
     const client = clientRef.current;
@@ -126,6 +122,9 @@ const App: React.FC = () => {
     client.on("error", (event: any) => console.error(event));
 
     client.on("conversation.interrupted", async () => {
+      if (!client.isConnected) {
+        return;
+      }
       const trackSampleOffset = await wavStreamPlayer.interrupt();
       if (trackSampleOffset?.trackId) {
         const { trackId, offset } = trackSampleOffset;
@@ -134,6 +133,9 @@ const App: React.FC = () => {
     });
 
     client.on("conversation.updated", async ({ item, delta }: any) => {
+      if (!client.isConnected || item === null) {
+        return;
+      }
       client.conversation.getItems();
       if (delta?.audio) {
         wavStreamPlayer.add16BitPCM(delta.audio, item.id);
@@ -158,10 +160,65 @@ const App: React.FC = () => {
     return () => {
       client.reset();
     };
-  }, []);
+  };
+
+  const disconnectAidaAgent = async () => {
+    isAidaConnectedRef.current = false;
+    const client = clientRef.current;
+    const wavRecorder = wavRecorderRef.current;
+    const wavStreamPlayer = wavStreamPlayerRef.current;
+
+    if (!client || !wavRecorder || !wavStreamPlayer) {
+      return;
+    }
+
+    try {
+      // Disconnect from the microphone (pause or stop recording)
+      if (wavRecorder.recording) {
+        await wavRecorder.end(); // Pause recording if it's active
+      }
+
+      await wavStreamPlayer.stop();
+
+      // Disconnect the real-time client
+      await client.disconnect();
+      console.log("Disconnected from Aida agent.");
+      await client.reset(); // Reset client session
+    } catch (error) {
+      console.error("Error while disconnecting Aida agent:", error);
+    }
+
+    // Set the connection status to disconnected
+    setAidaConnectionStatus("muted");
+  };
+
+  // Real-time transcript
+  const { command, utterances, addAidaUtterance } = useTranscriptWebSocket(
+    "wss://meeting-data.bot.recall.ai/api/v1/transcript"
+  );
+
+  // Aida command
+  const handleCommand = (command: string) => {
+    if (command === "connect") {
+      setAidaConnectionStatus("connect");
+      connectAidaAgent();
+    } else if (command === "disconnect") {
+      setAidaConnectionStatus("disconnect");
+      disconnectAidaAgent();
+    }
+  };
+
+  useEffect(() => {
+    if (command) {
+      handleCommand(command);
+    }
+  }, [command]);
 
   return (
     <div className="app-container">
+      <p>
+        Aida Status: {aidaConnectionStatus}, command: {command}
+      </p>
       <Transcript utterances={utterances} />
     </div>
   );
