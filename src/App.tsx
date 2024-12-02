@@ -122,6 +122,9 @@ const App: React.FC = () => {
     client.on("error", (event: any) => console.error(event));
 
     client.on("conversation.interrupted", async () => {
+      if (!client.isConnected) {
+        return;
+      }
       const trackSampleOffset = await wavStreamPlayer.interrupt();
       if (trackSampleOffset?.trackId) {
         const { trackId, offset } = trackSampleOffset;
@@ -130,7 +133,7 @@ const App: React.FC = () => {
     });
 
     client.on("conversation.updated", async ({ item, delta }: any) => {
-      if (!item) {
+      if (!client.isConnected || item === null) {
         return;
       }
       client.conversation.getItems();

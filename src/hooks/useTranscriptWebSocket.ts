@@ -22,7 +22,7 @@ interface TranscriptMessage {
   transcript: Transcript;
 }
 
-const WAKE_AIDA_COMMAND_LIST = ["hey aida", "aida listen"];
+const WAKE_AIDA_COMMAND_LIST = ["hey aida", "aida listen", "start listening"];
 const MUTE_AIDA_COMMAND_LIST = ["aida mute", "stop listening"];
 
 const normalizeText = (text: string): string => {
