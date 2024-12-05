@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/conversation_config.ts","./src/main.tsx","./src/vite-env.d.ts","./src/components/Transcript.tsx","./src/hooks/useTranscriptWebSocket.ts","./src/types/index.ts"],"version":"5.7.2"}
