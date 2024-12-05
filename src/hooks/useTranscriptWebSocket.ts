@@ -22,8 +22,8 @@ interface TranscriptMessage {
   transcript: Transcript;
 }
 
-const WAKE_AIDA_COMMAND_LIST = ["hey aida", "aida listen", "start listening"];
-const MUTE_AIDA_COMMAND_LIST = ["aida mute", "stop listening"];
+const WAKE_AIDA_COMMAND_LIST = ["hey aida listen", "hey aida start listening"];
+const MUTE_AIDA_COMMAND_LIST = ["hey aida mute", "hey aida stop listening"];
 
 const normalizeText = (text: string): string => {
   return text.toLowerCase().replace(/[^\w\s]/g, "");
