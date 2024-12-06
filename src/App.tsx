@@ -81,6 +81,10 @@ const App: React.FC = () => {
         },
       ]);
 
+      client.updateSession({
+        voice: "sage",
+      });
+
       // Always use VAD mode
       client.updateSession({
         turn_detection: { type: "server_vad" },

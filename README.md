@@ -1,107 +1,103 @@
-# Aida Voice Agent
+# Aida Voice Agent Frontend
 
+This is the frontend application for the **Aida Voice Agent**, a real-time conversational AI system powered by the OpenAI Realtime API. The application is built with React, TypeScript, and Vite for fast and efficient development. 
 
-This is a sample app demonstrating how to leverage the Aida Voice Agent to create a real-time meeting assistant for video conferences. The app enables features such as automated note-taking, transcription, and live translation to enhance productivity and collaboration during virtual meetings.
-
-While this example specifically uses the real-time transcription WebSocket API, you can also use the [Output Media](https://docs.recall.ai/docs/stream-media) feature to receive and output low-latency audio.
+---
 
 ## Prerequisites
 
--   Node.js and npm installed.
--   [Recall.ai](https://recall.ai) API Key
--   [ngrok](https://docs.recall.ai/docs/local-webhook-development)
+1. **Node.js and npm**: Ensure you have the latest version installed from [nodejs.org](https://nodejs.org).
+2. **Backend link**: A WebSocket server URL for communication. 
+3. **Firebase account**: Set up a project for hosting the frontend.
+4. **Recall.ai API Key**: Required to integrate with the bot creation endpoint.
 
-## Setup Guide
+---
 
-1. Clone the Repository
+## Local Development Environment
+
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/deltamod3/aida-voice-agent
+   cd aida-voice-agent
+   ```
+
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables**:
+   Create a `.env` file in the project root with the following content:
+   ```env
+   VITE_WSS_SERVER_URL="wss://34.147.138.85"
+   ```
+   Replace the WebSocket server URL with your backend's URL.
+
+4. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
+   The application will be available at `http://localhost:4000`.
+
+---
+
+## Deploy to Firebase
+
+1. **Install Firebase Tools**:
+   ```bash
+   npm install -g firebase-tools
+   ```
+
+2. **Initialize Firebase**:
+   ```bash
+   firebase login
+   firebase init
+   ```
+   - Select **Hosting**.
+   - Use an existing Firebase project or create a new one.
+   - Set the `build` folder as the public directory.
+   - Configure as a single-page app by answering `Yes` to the appropriate prompt.
+
+3. **Build the Application**:
+   ```bash
+   npm run build
+   ```
+
+4. **Deploy to Firebase**:
+   ```bash
+   firebase deploy
+   ```
+   Your application will be live at the URL provided by Firebase.
+
+---
+
+## Testing
+
+### Create a Bot Using Recall.ai
+Use the following `curl` command to create a bot for integration with Google Meet:
 
 ```bash
-git clone https://github.com/deltamod3/aida-voice-agent
-cd aida-voice-agent
-```
-
-2. Install Dependencies
-
-```bash
-npm install
-```
-
-3. Set Up Environment Variables
-
-Clone `.env.example`:
-
-```bash
-cp .env.example .env
-```
-
-Then fill out the following environment variables in your new `.env`:
-
-```env
-VITE_WSS_SERVER_URL=your_backend_websocket_url
-```
-
-Note: Start by running the backend to ensure the Aida Voice Agent operates seamlessly.
-
-
-4. Run the App
-
-Start your ngrok tunnel:
-
-```bash
-ngrok http 4000
-```
-
-Start the react app in another terminal:
-
-```bash
-npm run dev
-```
-
-This will start the Vite development server and expose your app publicly at your ngrok static domain for the bot to connect to.
-
-5. Start a meeting
-
-For simplicity, we'll use Google Meet, but this also works for other [meeting platforms](https://docs.recall.ai/docs/stream-media#platform-support).
-
-Open a new tab and type `meet.new` to start a new Google Meet call. Copy the link for the next step.
-
-6. Spin up a bot
-
-The last step is to spin up a bot and have it interact with your now-running translator app.
-
-To do this, you can use the following curl command (along with any other desired [parameters](https://docs.recall.ai/reference/bot_create)):
-
-```bash
-curl --request POST \
-     --url https://{RECALLAI_REGION}.recall.ai/api/v1/bot/ \
-     --header 'Authorization: {RECALLAI_API_KEY}' \
-     --header 'accept: application/json' \
-     --header 'content-type: application/json' \
-     --data-raw '
-{
-  "meeting_url": {MEETING_URL},
-  "bot_name": "Aida Voice Agent",
-  "output_media": {
-    "screenshare": {
-      "kind": "webpage",
-      "config": {
-        "url": {NGROK_TUNNEL_URL}
-      }
-    }
-  },
-  "transcription_options": {
-    "provider": "meeting_captions"
-  }
+curl --location 'https://eu-central-1.recall.ai/api/v1/bot/' \
+--header 'Authorization: {{your_recall_api_key}}' \
+--data '{
+    "meeting_url": "{{your_google_meet_link}}",
+    "bot_name": "Aida Voice Agent",
+    "output_media": {
+        "camera": {
+            "kind": "webpage",
+            "config": {
+                "url": "{{your_agent_link}}"
+            }
+        }
+    },
+    "transcription_options": {
+        "provider": "meeting_captions"
+    },
+    "recording_mode": "audio_only"
 }'
 ```
 
-Where:
-
--   {RECALLAI_REGION} is your Recall.ai API [Region](https://docs.recall.ai/docs/regions).
--   {RECALLAI_API_KEY} is your Recall.ai API key.
--   {MEETING_URL} is the Meeting URL created in step 5.
--   {NGROK_TUNNEL_URL} is your publicly exposed ngrok tunnel URL
-
-The bot will then join your meeting and render the app in the call, transcribing speech in real-time and communicating with AI agent based on command.
-
-Happy building!
+Replace the placeholders:
+- `{{your_recall_api_key}}`: Your Recall.ai API key.
+- `{{your_google_meet_link}}`: A valid Google Meet link.
+- `{{your_agent_link}}`: The public URL of the deployed frontend.
